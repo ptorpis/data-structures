@@ -47,7 +47,6 @@ if(BUILD_TESTS)
     add_executable(vector_tests
         tests/test_main.cpp
         tests/test_constructors.cpp
-        # Add more test files as you create them
         # tests/test_element_access.cpp
         # tests/test_iterators.cpp
         # tests/test_capacity.cpp
