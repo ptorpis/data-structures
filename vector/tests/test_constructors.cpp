@@ -39,3 +39,18 @@ TEST(VectorTest, CountValueConstructor) {
         EXPECT_EQ(v[i], 42);
     }
 }
+
+TEST(VectorTest, InitializerTest) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+    std::vector<int> stdVec{1, 2, 3, 4, 5};
+
+    EXPECT_EQ(v.size(), 5);
+    EXPECT_EQ(v.capacity(), 5);
+    EXPECT_FALSE(v.empty());
+
+    for (std::size_t i{}; i < 5; ++i) {
+        EXPECT_EQ(v[i], i + 1);
+
+        EXPECT_EQ(stdVec[i], v[i]);
+    }
+}

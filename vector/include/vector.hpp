@@ -102,7 +102,32 @@ public:
         }
     }
 
-    vector(std::initializer_list<T>);
+    vector(std::initializer_list<T> init, const Allocator& allocator = Allocator())
+        : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
+        std::size_t count = init.size();
+        if (count == 0) {
+            return;
+        }
+
+        data_m = alloc_traits::allocate(alloc_m, count);
+        capacity_m = count;
+
+        try {
+            auto it = init.begin();
+            for (std::size_t i{}; i < count; ++i, ++it) {
+                alloc_traits::construct(alloc_m, data_m + i, *it);
+                ++size_m;
+            }
+
+        } catch (...) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+            throw;
+        }
+    }
 
     vector(vector& other);
 
