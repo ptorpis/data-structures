@@ -24,45 +24,39 @@ target_include_directories(ptorpis-vec INTERFACE
 )
 
 # Optional: Build tests
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
 
 if(BUILD_TESTS)
     enable_testing()
     
-    # Find Google Test
     find_package(GTest QUIET)
     
-    if(NOT GTest_FOUND)
+    # if(NOT GTest_FOUND)
         # Fetch Google Test if not found
-        include(FetchContent)
-        FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://github.com/google/googletest.git
-            GIT_TAG release-1.12.1
-        )
-        FetchContent_MakeAvailable(googletest)
-    endif()
+        # include(FetchContent)
+        # FetchContent_Declare(
+            # googletest
+            # GIT_REPOSITORY https://github.com/google/googletest.git
+            # GIT_TAG release-1.12.1
+        # )
+        # FetchContent_MakeAvailable(googletest)
+    # endif()
     
     # Test executable
-    add_executable(vector_tests
-        tests/test_main.cpp
+    add_executable(tests_vector
         tests/test_constructors.cpp
-        # tests/test_element_access.cpp
-        # tests/test_iterators.cpp
-        # tests/test_capacity.cpp
-        # tests/test_modifiers.cpp
     )
     
-    target_link_libraries(vector_tests 
+    target_link_libraries(tests_vector 
         PRIVATE 
-        custom_vector
+        ptorpis-vec
         GTest::gtest
         GTest::gtest_main
     )
     
     # Register tests with CTest
     include(GoogleTest)
-    gtest_discover_tests(vector_tests)
+    gtest_discover_tests(tests_vector)
 endif()
 
 # Optional: Build examples

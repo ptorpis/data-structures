@@ -29,5 +29,7 @@ int main() {
     std::cout << "Is empty (custom): " << std::boolalpha << vec.empty() << std::dec
               << std::endl;
 
+    std::cout << sizeof(stdvec) << std::endl << sizeof(vec) << std::endl;
+
     return 0;
 }

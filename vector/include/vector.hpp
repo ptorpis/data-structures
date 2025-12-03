@@ -21,6 +21,9 @@ namespace ptorpis {
  * @tparam Allocator The allocator type used for memory management
  */
 template <typename T, typename Allocator = std::allocator<T>> class vector {
+private:
+    using alloc_traits = std::allocator_traits<Allocator>;
+
 public:
     static std::size_t max_size() { return std::numeric_limits<T>::max(); }
 
@@ -28,10 +31,16 @@ public:
      * Constructors
      */
 
-    vector() : data_m(nullptr), capacity_m(0), size_m(0) {}
+    // Default constructor with no parameters, sets T* to nullptr, capacity and size to 0
+    vector() noexcept : data_m(nullptr), capacity_m(0), size_m(0) {}
+
+    // Default constructor with allocator, same as default with no params, except it sets
+    // the allocator
+    vector(const Allocator& allocator) noexcept
+        : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {}
 
     /*
-     * @brief count construcor: constructs vector object, allocated memory and default
+     * @brief count constructor: constructs vector object, allocated memory and default
      * constructs all elements.
      * @param std::size_t count: number of elements to allocate memory for and default
      * construct
@@ -39,32 +48,59 @@ public:
      */
 
     vector(std::size_t count, const Allocator& allocator = Allocator())
-        : alloc_m(allocator), data_m(nullptr), capacity_m(count), size_m(0) {
+        : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
         if (count == 0) {
             return;
         }
 
-        data_m = std::allocator_traits<Allocator>::allocate(alloc_m, count);
+        data_m = alloc_traits::allocate(alloc_m, count);
         capacity_m = count;
 
         try {
             for (std::size_t i{}; i < count; ++i) {
-                std::allocator_traits<Allocator>::construct(alloc_m, data_m + i);
+                alloc_traits::construct(alloc_m, data_m + i);
                 ++size_m;
             }
-        } catch (const std::exception& ex) {
-            for (std::size_t i{}; i < count; ++i) {
-                std::allocator_traits<Allocator>::destroy(alloc_m, data_m + i);
-                --size_m;
+        } catch (...) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
             }
 
-            std::allocator_traits<Allocator>::deallocate(alloc_m, data_m, capacity_m);
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
 
             throw;
         }
     }
 
-    vector(std::size_t count, const T& value);
+    /*
+     * @brief Count + Value Constructor: Constructs the vector object, allocates memory
+     * and constructs all elements with the value given
+     * @param std::size_t count
+     * @param const T& value: the value with which the elements should be constructed with
+     * @param const Allocator& allocator
+     */
+    vector(std::size_t count, const T& value, const Allocator& allocator = Allocator())
+        : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
+
+        data_m = alloc_traits::allocate(alloc_m, count);
+        capacity_m = count;
+
+        try {
+            for (std::size_t i{}; i < count; ++i) {
+                alloc_traits::construct(alloc_m, data_m + i, value);
+                ++size_m;
+            }
+
+        } catch (...) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+
+            throw;
+        }
+    }
 
     vector(std::initializer_list<T>);
 
@@ -112,7 +148,12 @@ public:
     };
 
 private:
-    Allocator alloc_m;
+    /*
+     * If this member is empty, it does not have an address, so size == 24 bytes, without
+     * the attribute, it is probably (up to the compiler) 32 bytes (24 + 1 (unique addr) +
+     * 7 padding)
+     */
+    [[no_unique_address]] Allocator alloc_m;
     T* data_m;
     std::size_t capacity_m;
     std::size_t size_m;
