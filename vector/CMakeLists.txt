@@ -45,6 +45,8 @@ if(BUILD_TESTS)
     # Test executable
     add_executable(tests_vector
         tests/test_constructors.cpp
+        tests/test_access.cpp
+        tests/test_type.cpp
     )
     
     target_link_libraries(tests_vector 

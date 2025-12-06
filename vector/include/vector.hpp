@@ -13,6 +13,7 @@
 #include <initializer_list>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 
 namespace ptorpis {
 /*
@@ -129,21 +130,67 @@ public:
         }
     }
 
-    vector(vector& other);
+    vector(const vector& other)
+        : alloc_m(alloc_traits::select_on_container_copy_construction(other.alloc_m)),
+          data_m(nullptr), capacity_m(0), size_m(0) {
+        if (other.size_m == 0) {
+            return;
+        }
+
+        data_m = alloc_traits::allocate(alloc_m, other.size_m);
+        capacity_m = other.size();
+
+        try {
+            for (std::size_t i{}; i < other.size_m; ++i) {
+                alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
+                ++size_m;
+            }
+
+        } catch (...) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+            throw;
+        }
+    }
+
+    vector(vector&& other);
 
     vector& operator=(const vector& other);
     vector& operator=(vector&& other) noexcept;
 
     ~vector() = default;
 
-    T& at(std::size_t pos) const;
+    T& at(std::size_t pos) {
+        if (pos >= size_m) {
+            throw std::out_of_range("Element accessed is out of bounds");
+        }
 
-    T& operator[](std::size_t pos) const { return data_m[pos]; }
+        return data_m[pos];
+    }
 
-    T& back() const;
-    T& front() const;
+    const T& at(std::size_t pos) const {
+        if (pos >= size_m) {
+            throw std::out_of_range("Element accessed is out of bounds");
+        }
+        return data_m[pos];
+    }
 
-    T* data() const;
+    T& operator[](std::size_t pos) { return data_m[pos]; }
+    const T& operator[](std::size_t pos) const { return data_m[pos]; }
+
+    const T& back() const { return data_m[size_m - 1]; }
+
+    T& back() { return data_m[size_m - 1]; }
+
+    T& front() { return *data_m; }
+    const T& front() const { return *data_m; }
+
+    T* data() { return data_m; }
+
+    const T* data() const { return data_m; }
 
     std::size_t size() const { return size_m; }
 
