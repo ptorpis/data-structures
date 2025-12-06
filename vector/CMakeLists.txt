@@ -47,6 +47,7 @@ if(BUILD_TESTS)
         tests/test_constructors.cpp
         tests/test_access.cpp
         tests/test_type.cpp
+        tests/test_operators.cpp
     )
     
     target_link_libraries(tests_vector 

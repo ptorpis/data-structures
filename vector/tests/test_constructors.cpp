@@ -122,3 +122,25 @@ TEST(VectorConstructorTest, CopyConstructorIndependentMemory) {
 
     EXPECT_NE(v1.data(), v2.data());
 }
+
+TEST(VectorConstructorTest, MoveConstructor) {
+    ptorpis::vector<int> v1{1, 2, 3, 4, 5};
+    int* old_ptr = v1.data();
+    size_t old_size = v1.size();
+    size_t old_cap = v1.capacity();
+
+    ptorpis::vector<int> v2(std::move(v1));
+
+    EXPECT_EQ(v2.data(), old_ptr);
+    EXPECT_EQ(v2.size(), old_size);
+    EXPECT_EQ(v2.capacity(), old_cap);
+    EXPECT_EQ(v2[0], 1);
+
+    EXPECT_EQ(v1.data(), nullptr);
+    EXPECT_EQ(v1.size(), 0);
+    EXPECT_EQ(v1.capacity(), 0);
+}
+
+TEST(VectorConstructorTest, MoveConstructorNoexcept) {
+    EXPECT_TRUE(std::is_nothrow_move_constructible_v<ptorpis::vector<int>>);
+}

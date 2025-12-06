@@ -9,11 +9,13 @@
  * while learning along the way.
  */
 
+#include <algorithm>
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 namespace ptorpis {
 /*
@@ -156,13 +158,36 @@ public:
         }
     }
 
-    vector(vector&& other);
+    vector(vector&& other) noexcept
+        : alloc_m(std::move(other.alloc_m)), data_m(std::exchange(other.data_m, nullptr)),
+          capacity_m(std::exchange(other.capacity_m, 0)),
+          size_m(std::exchange(other.size_m, 0)) {}
 
     vector& operator=(const vector& other);
     vector& operator=(vector&& other) noexcept;
 
     ~vector() = default;
 
+    /*
+     * Access methods
+     */
+
+    /*
+     * @brief Accesses element at specified location with bounds checking
+     *
+     * Returns a reference to the element at position pos. If pos is not
+     * within the range of the container, an exception is thrown.
+     *
+     * @param pos Position of the element to return (zero-indexed)
+     * @return Reference to the requested element
+     *
+     * @throws std::out_of_range if pos >= size()
+     *
+     * @par Complexity
+     * Constant
+     *
+     * @see operator[] for unchecked access
+     */
     T& at(std::size_t pos) {
         if (pos >= size_m) {
             throw std::out_of_range("Element accessed is out of bounds");
@@ -171,6 +196,7 @@ public:
         return data_m[pos];
     }
 
+    /// @overload
     const T& at(std::size_t pos) const {
         if (pos >= size_m) {
             throw std::out_of_range("Element accessed is out of bounds");
@@ -210,6 +236,22 @@ public:
     bool empty() const { return size_m == 0; }
 
     vector& swap(vector& other) noexcept;
+
+    bool operator==(const vector& other) const {
+        if (other.size_m != size_m) {
+            return false;
+        }
+
+        return std::equal(data_m, data_m + size_m, other.data_m);
+    }
+
+    bool operator!=(const vector& other) const {
+        if (other.size_m != size_m) {
+            return true;
+        }
+
+        return !(std::equal(data_m, data_m + size_m, other.data_m));
+    }
 
     class Iterator {
     public:
