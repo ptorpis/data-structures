@@ -26,6 +26,7 @@ namespace ptorpis {
 template <typename T, typename Allocator = std::allocator<T>> class vector {
 private:
     using alloc_traits = std::allocator_traits<Allocator>;
+    static constexpr std::size_t GROWTH_FACTOR = 2;
 
 public:
     static std::size_t max_size() { return std::numeric_limits<T>::max(); }
@@ -345,6 +346,42 @@ public:
         }
     }
 
+    void reserve(std::size_t new_capacity) {
+        if (capacity_m >= new_capacity) {
+            return;
+        }
+
+        T* new_data = alloc_traits::allocate(alloc_m, new_capacity);
+
+        std::size_t moved{};
+        try {
+            for (; moved < size_m; ++moved) {
+                alloc_traits::construct(alloc_m, new_data + moved,
+                                        std::move_if_noexcept(data_m[moved]));
+            }
+
+        } catch (...) {
+            for (std::size_t i{}; i < moved; ++i) {
+                alloc_traits::destroy(alloc_m, new_data + i);
+            }
+
+            if (data_m) {
+                alloc_traits::deallocate(alloc_m, new_data, new_capacity);
+            }
+
+            throw;
+        }
+
+        for (std::size_t i{}; i < size_m; ++i) {
+            alloc_traits::destroy(alloc_m, data_m + i);
+        }
+
+        alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+
+        data_m = new_data;
+        capacity_m = new_capacity;
+    }
+
     /*
      * Access methods
      */
@@ -399,8 +436,24 @@ public:
 
     std::size_t capacity() const { return capacity_m; }
 
-    void push_back(const T& value);
-    void push_back(T&& value);
+    void push_back(const T& value) {
+        if (size_m == capacity_m) {
+            // reserve space for 1 if the vector is empty, otherwise double the capacity
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        alloc_traits::construct(alloc_m, data_m + size_m, value);
+        ++size_m;
+    }
+
+    void push_back(T&& value) {
+        if (size_m == capacity_m) {
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        alloc_traits::construct(alloc_m, data_m + size_m, std::move(value));
+        ++size_m;
+    }
 
     void emplace_back();
 

@@ -31,23 +31,12 @@ if(BUILD_TESTS)
     
     find_package(GTest QUIET)
     
-    # if(NOT GTest_FOUND)
-        # Fetch Google Test if not found
-        # include(FetchContent)
-        # FetchContent_Declare(
-            # googletest
-            # GIT_REPOSITORY https://github.com/google/googletest.git
-            # GIT_TAG release-1.12.1
-        # )
-        # FetchContent_MakeAvailable(googletest)
-    # endif()
-    
-    # Test executable
     add_executable(tests_vector
         tests/test_constructors.cpp
         tests/test_access.cpp
         tests/test_type.cpp
         tests/test_operators.cpp
+        tests/test_reserve_push_back.cpp
     )
     
     target_link_libraries(tests_vector 
@@ -57,7 +46,17 @@ if(BUILD_TESTS)
         GTest::gtest_main
     )
     
-    # Register tests with CTest
+    target_compile_options(tests_vector PRIVATE
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+        -g
+        -O1
+    )
+    
+    target_link_options(tests_vector PRIVATE
+        -fsanitize=address,undefined
+    )
+    
     include(GoogleTest)
     gtest_discover_tests(tests_vector)
 endif()
