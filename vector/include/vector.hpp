@@ -1,5 +1,5 @@
 /*
- * @file data-structures/src/vector.hpp
+ * @file data-structures/include/vector.hpp
  * @brief Custom implementation of a dynamic array, similar to std::vector<T>
  * @author ptorpis -- Peter Torpis
  *
@@ -34,7 +34,8 @@ public:
      * Constructors
      */
 
-    // Default constructor with no parameters, sets T* to nullptr, capacity and size to 0
+    // Default constructor with no parameters, sets data to nullptr, capacity and size to
+    // 0
     vector() noexcept : data_m(nullptr), capacity_m(0), size_m(0) {}
 
     // Default constructor with allocator, same as default with no params, except it sets
@@ -105,6 +106,24 @@ public:
         }
     }
 
+    /*
+     * @brief Constructs a vector from an initializer list
+     *
+     * Creates a vector containing copies of the elements in the initializer list.
+     *
+     * @param init Initializer list to initialize the elements with
+     * @param allocator Allocator to use for memory allocation
+     *
+     * @throws std::bad_alloc if memory allocation fails
+     * @throws Any exception thrown by T's copy constructor
+     *
+     * @par Complexity
+     * Linear in init.size()
+     *
+     * @par Exception Safety
+     * Strong guarantee - if an exception is thrown, no resources are leaked
+     */
+
     vector(std::initializer_list<T> init, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
         std::size_t count = init.size();
@@ -132,6 +151,28 @@ public:
         }
     }
 
+    /*
+     * @brief Copy constructor - constructs a vector as a copy of another
+     *
+     * Creates a new vector with a copy of the contents of other. The allocator
+     * is obtained by calling allocator_traits::select_on_container_copy_construction
+     * on other's allocator.
+     *
+     * @param other Another vector to be used as source to initialize the elements
+     *
+     * @throws std::bad_alloc if memory allocation fails
+     * @throws Any exception thrown by T's copy constructor
+     *
+     * @par Complexity
+     * Linear in other.size()
+     *
+     * @par Exception Safety
+     * Strong guarantee - if an exception is thrown during copying, the object
+     * is not constructed and no resources are leaked
+     *
+     * @note Creates a deep copy - the new vector is independent of the source
+     * @note Only allocates memory for other.size() elements, not other.capacity()
+     */
     vector(const vector& other)
         : alloc_m(alloc_traits::select_on_container_copy_construction(other.alloc_m)),
           data_m(nullptr), capacity_m(0), size_m(0) {
@@ -158,15 +199,151 @@ public:
         }
     }
 
+    /*
+     * @brief Move constructor - constructs a vector by moving from another
+     *
+     * Constructs the vector with the contents of other using move semantics.
+     * After the move, other is left in a valid but unspecified state (typically empty).
+     *
+     * @param other Another vector to be used as source to initialize the elements
+     *
+     * @throws Nothing (noexcept)
+     *
+     * @par Complexity
+     * Constant
+     *
+     * @par Exception Safety
+     * No-throw guarantee
+     *
+     * @note After the move, other is left in a valid state with size() == 0
+     * @note No elements are copied - ownership of other's resources is transferred
+     */
     vector(vector&& other) noexcept
         : alloc_m(std::move(other.alloc_m)), data_m(std::exchange(other.data_m, nullptr)),
           capacity_m(std::exchange(other.capacity_m, 0)),
           size_m(std::exchange(other.size_m, 0)) {}
 
-    vector& operator=(const vector& other);
-    vector& operator=(vector&& other) noexcept;
+    /**
+     * @brief Copy assignment operator
+     *
+     * Replaces the contents with a copy of the contents of other. If
+     * allocator_traits::propagate_on_container_copy_assignment is true, the
+     * allocator is also copied from other.
+     *
+     * @param other Another vector to use as data source
+     * @return Reference to *this
+     *
+     * @throws std::bad_alloc if memory allocation fails
+     * @throws Any exception thrown by T's copy constructor
+     *
+     * @par Complexity
+     * Linear in size() + other.size()
+     *
+     * @par Exception Safety
+     * Basic guarantee - if an exception is thrown, *this is left in a valid
+     * but unspecified state
+     *
+     * @note Self-assignment is handled correctly
+     * @note All existing elements are destroyed before copying
+     */
+    vector& operator=(const vector& other) {
+        if (this == &other) {
+            return *this;
+        }
 
-    ~vector() = default;
+        clear_and_deallocate_();
+
+        if constexpr (alloc_traits::propagate_on_container_copy_assignment::value) {
+            alloc_m = other.alloc_m;
+        }
+
+        if (other.size_m == 0) {
+            return *this;
+        }
+
+        data_m = alloc_traits::allocate(alloc_m, other.size_m);
+        capacity_m = other.size_m;
+
+        try {
+            for (std::size_t i{}; i < other.size_m; ++i) {
+                alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
+                ++size_m;
+            }
+        } catch (...) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+
+            throw;
+        }
+
+        return *this;
+    }
+
+    /**
+     * @brief Move assignment operator
+     *
+     * Replaces the contents with those of other using move semantics. other is
+     * left in a valid but unspecified state. If allocator_traits::
+     * propagate_on_container_move_assignment is true, the allocator is also
+     * moved from other.
+     *
+     * @param other Another vector to use as data source
+     * @return Reference to *this
+     *
+     * @throws Nothing (noexcept)
+     *
+     * @par Complexity
+     * Linear in size() (for destroying existing elements), plus constant
+     *
+     * @par Exception Safety
+     * No-throw guarantee
+     *
+     * @note Self-assignment is handled correctly
+     * @note All existing elements are destroyed before moving
+     * @note After the move, other is left in a valid state with size() == 0
+     */
+    vector& operator=(vector&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        clear_and_deallocate_();
+
+        if constexpr (alloc_traits::propagate_on_container_move_assignment::value) {
+            alloc_m = std::move(other.alloc_m);
+        }
+
+        data_m = std::exchange(other.data_m, nullptr);
+        capacity_m = std::exchange(other.capacity_m, 0);
+        size_m = std::exchange(other.size_m, 0);
+
+        return *this;
+    }
+
+    /**
+     * @brief Destructor - destroys all elements and deallocates memory
+     *
+     * Destroys all elements in the vector and deallocates the storage.
+     *
+     * @throws Nothing (destructors must not throw)
+     *
+     * @par Complexity
+     * Linear in size()
+     *
+     * @note If T's destructor throws, the behavior is undefined (destructors
+     *       should not throw exceptions)
+     */
+    ~vector() {
+        for (std::size_t i{}; i < size_m; ++i) {
+            alloc_traits::destroy(alloc_m, data_m + i);
+        }
+        if (data_m) {
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+        }
+    }
 
     /*
      * Access methods
@@ -271,6 +448,19 @@ private:
     T* data_m;
     std::size_t capacity_m;
     std::size_t size_m;
+
+    void clear_and_deallocate_() {
+        if (data_m) {
+            for (std::size_t i{}; i < size_m; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+            data_m = nullptr;
+            capacity_m = 0;
+            size_m = 0;
+        }
+    }
 };
 
 } // namespace ptorpis
