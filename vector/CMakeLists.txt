@@ -37,6 +37,7 @@ if(BUILD_TESTS)
         tests/test_type.cpp
         tests/test_operators.cpp
         tests/test_reserve_push_back.cpp
+        tests/test_general.cpp
     )
     
     target_link_libraries(tests_vector 

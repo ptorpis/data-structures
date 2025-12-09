@@ -457,7 +457,32 @@ public:
 
     void emplace_back();
 
-    void pop_back();
+    /**
+     * @brief Removes the last element
+     *
+     * Removes the last element from the container. Does not reduce capacity.
+     *
+     * @warning Calling pop_back on an empty container is undefined behavior
+     *
+     * @par Complexity
+     * Constant
+     *
+     * @par Iterator Validity
+     * Iterators and references to the last element are invalidated.
+     * The end() iterator is also invalidated.
+     */
+    void pop_back() {
+        --size_m;
+        alloc_traits::destroy(alloc_m, data_m + size_m - 1);
+    }
+
+    void clear() {
+        for (std::size_t i{}; i < size_m; ++i) {
+            alloc_traits::destroy(alloc_m, data_m + i);
+        }
+
+        size_m = 0;
+    }
 
     void insert(std::size_t index, const T& value);
 
