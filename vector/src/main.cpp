@@ -31,5 +31,13 @@ int main() {
 
     std::cout << sizeof(stdvec) << std::endl << sizeof(vec) << std::endl;
 
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    for (auto elem : v) {
+        std::cout << elem << " ";
+    }
+
+    std::cout << std::endl;
+
     return 0;
 }

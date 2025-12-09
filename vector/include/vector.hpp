@@ -9,6 +9,8 @@
  * while learning along the way.
  */
 
+#pragma once
+
 #include <algorithm>
 #include <cstddef>
 #include <initializer_list>
@@ -16,6 +18,8 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
+
+#include "iterators.hpp"
 
 namespace ptorpis {
 /*
@@ -508,13 +512,9 @@ public:
         return !(std::equal(data_m, data_m + size_m, other.data_m));
     }
 
-    class Iterator {
-    public:
-        Iterator(T* ptr = nullptr) : ptr_m(ptr) {}
+    vector_iterator<T> begin() { return vector_iterator(data_m); }
 
-    private:
-        T* ptr_m;
-    };
+    vector_iterator<T> end() { return vector_iterator(data_m + size_m); }
 
 private:
     /*
