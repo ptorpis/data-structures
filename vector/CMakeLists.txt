@@ -32,12 +32,12 @@ if(BUILD_TESTS)
     find_package(GTest QUIET)
     
     add_executable(tests_vector
-        tests/test_constructors.cpp
-        tests/test_access.cpp
-        tests/test_type.cpp
-        tests/test_operators.cpp
-        tests/test_reserve_push_back.cpp
-        tests/test_general.cpp
+        tests/constructor.cpp
+        tests/access.cpp
+        tests/type.cpp
+        tests/operators.cpp
+        tests/reserve_push_back.cpp
+        tests/general.cpp
         tests/iterators.cpp
     )
     
