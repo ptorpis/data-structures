@@ -518,8 +518,11 @@ public:
         return !(std::equal(data_m, data_m + size_m, other.data_m));
     }
 
-    iterator begin() const { return iterator(data_m); }
-    iterator end() const { return iterator(data_m + size_m); }
+    iterator begin() { return iterator(data_m); }
+    iterator end() { return iterator(data_m + size_m); }
+
+    const_iterator begin() const { return const_iterator(data_m); }
+    const_iterator end() const { return const_iterator(data_m + size_m); }
 
     const_iterator cbegin() const { return const_iterator(data_m); }
     const_iterator cend() const { return const_iterator(data_m + size_m); }
@@ -527,8 +530,11 @@ public:
     reverse_iterator rbegin() { return reverse_iterator(end()); }
     reverse_iterator rend() { return reverse_iterator(begin()); }
 
-    const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
-    const_reverse_iterator crend() const { return const_reverse_iterator(begin()); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+
+    const_reverse_iterator crbegin() const { return const_reverse_iterator(cend()); }
+    const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 
 private:
     /*

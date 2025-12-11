@@ -84,7 +84,7 @@ private:
 template <typename T> class vector_const_iterator {
 public:
     using iterator_category = std::random_access_iterator_tag;
-    using value_type = const T;
+    using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = const T*;
     using reference = const T&;
@@ -97,45 +97,45 @@ public:
     reference operator*() const { return *ptr_; }
     pointer operator->() const { return ptr_; }
 
-    const vector_const_iterator& operator++() {
+    vector_const_iterator& operator++() {
         ++ptr_;
         return *this;
     }
 
-    const vector_const_iterator operator++(int) {
+    vector_const_iterator operator++(int) {
         vector_const_iterator temp = *this;
         ++ptr_;
         return temp;
     }
 
-    const vector_const_iterator operator--() {
+    vector_const_iterator operator--() {
         --ptr_;
         return *this;
     }
 
-    const vector_const_iterator operator--(int) {
+    vector_const_iterator operator--(int) {
         vector_const_iterator temp = *this;
         --ptr_;
         return temp;
     }
 
-    const vector_const_iterator& operator+=(std::ptrdiff_t n) {
+    vector_const_iterator& operator+=(difference_type n) {
         ptr_ += n;
         return *this;
     }
 
-    const vector_const_iterator& operator-=(std::ptrdiff_t n) {
+    vector_const_iterator& operator-=(difference_type n) {
         ptr_ -= n;
         return *this;
     }
 
-    const vector_const_iterator operator+(std::ptrdiff_t n) const {
+    vector_const_iterator operator+(difference_type n) const {
         vector_const_iterator temp = *this;
         temp += n;
         return temp;
     }
 
-    const vector_const_iterator operator-(std::ptrdiff_t n) const {
+    vector_const_iterator operator-(difference_type n) const {
         vector_const_iterator temp = *this;
         temp -= n;
         return temp;

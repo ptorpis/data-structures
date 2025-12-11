@@ -1,6 +1,7 @@
 #include "iterators.hpp"
 #include "vector.hpp"
 #include <gtest/gtest.h>
+#include <numeric>
 
 TEST(VectorIteratorTest, RangeIteration) {
     ptorpis::vector<int> v(5);
@@ -343,9 +344,7 @@ TEST(VectorConstIteratorTest, CBeginCEndComparison) {
     EXPECT_TRUE(begin < end);
 }
 
-// ============================================================================
 // Mixed Iterator/Const Iterator Comparison Tests
-// ============================================================================
 
 TEST(VectorMixedIteratorTest, IteratorToConstIteratorComparison) {
     ptorpis::vector<int> v{1, 2, 3, 4, 5};
@@ -368,9 +367,7 @@ TEST(VectorMixedIteratorTest, IteratorAndConstBeginEnd) {
     EXPECT_TRUE(cend > it);
 }
 
-// ============================================================================
 // Ordering Tests
-// ============================================================================
 
 TEST(VectorIteratorTest, TransitiveOrdering) {
     ptorpis::vector<int> v{1, 2, 3, 4, 5};
@@ -409,9 +406,7 @@ TEST(VectorIteratorTest, ComplementaryComparisons) {
     EXPECT_EQ(it1 <= it2, it2 >= it1);
 }
 
-// ============================================================================
 // Algorithm Compatibility Tests
-// ============================================================================
 
 TEST(VectorIteratorTest, SortRequiresComparison) {
     ptorpis::vector<int> v{5, 2, 8, 1, 9, 3};
@@ -438,4 +433,227 @@ TEST(VectorIteratorTest, MinMaxElementRequiresComparison) {
 
     EXPECT_EQ(*min_it, 1);
     EXPECT_EQ(*max_it, 9);
+}
+
+TEST(VectorIteratorTest, Accumulate) {
+    ptorpis::vector<int> v{2, 3, 5};
+
+    int sum = std::accumulate(v.begin(), v.end(), 0);
+
+    EXPECT_EQ(sum, 10);
+}
+
+// Reverse Iterator Tests
+
+TEST(VectorReverseIteratorTest, BasicReverseIteration) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    std::vector<int> result;
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+        result.push_back(*it);
+    }
+
+    EXPECT_EQ(result.size(), 5);
+    EXPECT_EQ(result[0], 5);
+    EXPECT_EQ(result[1], 4);
+    EXPECT_EQ(result[2], 3);
+    EXPECT_EQ(result[3], 2);
+    EXPECT_EQ(result[4], 1);
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorModify) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+        *it *= 2;
+    }
+
+    EXPECT_EQ(v[0], 2);  // 1 * 2
+    EXPECT_EQ(v[1], 4);  // 2 * 2
+    EXPECT_EQ(v[2], 6);  // 3 * 2
+    EXPECT_EQ(v[3], 8);  // 4 * 2
+    EXPECT_EQ(v[4], 10); // 5 * 2
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorDereference) {
+    ptorpis::vector<int> v{10, 20, 30, 40, 50};
+
+    auto it = v.rbegin();
+
+    EXPECT_EQ(*it, 50);
+    ++it;
+    EXPECT_EQ(*it, 40);
+    ++it;
+    EXPECT_EQ(*it, 30);
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorComparison) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    auto rit1 = v.rbegin();
+    auto rit2 = v.rbegin();
+    auto rit3 = v.rend();
+
+    EXPECT_TRUE(rit1 == rit2);
+    EXPECT_FALSE(rit1 == rit3);
+    EXPECT_TRUE(rit1 != rit3);
+}
+
+TEST(VectorReverseIteratorTest, EmptyVectorReverseIterator) {
+    ptorpis::vector<int> v;
+
+    EXPECT_TRUE(v.rbegin() == v.rend());
+
+    int count = 0;
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+        ++count;
+    }
+
+    EXPECT_EQ(count, 0);
+}
+
+TEST(VectorReverseIteratorTest, SingleElementReverseIterator) {
+    ptorpis::vector<int> v{42};
+
+    auto it = v.rbegin();
+    EXPECT_EQ(*it, 42);
+
+    ++it;
+    EXPECT_TRUE(it == v.rend());
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorArithmetic) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    auto it = v.rbegin();
+    it += 2;
+
+    EXPECT_EQ(*it, 3); // rbegin points to 5, +2 goes to 3
+}
+
+// Const Reverse Iterator Tests
+
+TEST(VectorConstReverseIteratorTest, BasicConstReverseIteration) {
+    const ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    std::vector<int> result;
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+        result.push_back(*it);
+    }
+
+    EXPECT_EQ(result.size(), 5);
+    EXPECT_EQ(result[0], 5);
+    EXPECT_EQ(result[4], 1);
+}
+
+TEST(VectorConstReverseIteratorTest, CRBeginCREnd) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    std::vector<int> result;
+    for (auto it = v.crbegin(); it != v.crend(); ++it) {
+        result.push_back(*it);
+    }
+
+    EXPECT_EQ(result.size(), 5);
+    EXPECT_EQ(result[0], 5);
+    EXPECT_EQ(result[4], 1);
+}
+
+TEST(VectorConstReverseIteratorTest, ConstReverseIteratorReadOnly) {
+    const ptorpis::vector<int> v{10, 20, 30};
+
+    auto it = v.rbegin();
+    EXPECT_EQ(*it, 30);
+
+    // This should not compile (uncomment to verify):
+    // *it = 99;
+}
+
+TEST(VectorConstReverseIteratorTest, EmptyConstReverseIterator) {
+    const ptorpis::vector<int> v;
+
+    EXPECT_TRUE(v.rbegin() == v.rend());
+}
+
+// Reverse Iterator with Algorithms
+
+TEST(VectorReverseIteratorTest, ReverseIteratorWithAccumulate) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    int sum = std::accumulate(v.rbegin(), v.rend(), 0);
+
+    EXPECT_EQ(sum, 15);
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorWithFind) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    auto it = std::find(v.rbegin(), v.rend(), 3);
+
+    EXPECT_NE(it, v.rend());
+    EXPECT_EQ(*it, 3);
+}
+
+TEST(VectorReverseIteratorTest, ReverseIteratorWithCopy) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+    std::vector<int> result(5);
+
+    std::copy(v.rbegin(), v.rend(), result.begin());
+
+    EXPECT_EQ(result[0], 5);
+    EXPECT_EQ(result[4], 1);
+}
+
+// Forward and Reverse Iterator Interaction
+
+TEST(VectorIteratorTest, ForwardAndReverseIteratorConsistency) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    // Collect forward
+    std::vector<int> forward;
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        forward.push_back(*it);
+    }
+
+    // Collect reverse
+    std::vector<int> reverse;
+    for (auto it = v.rbegin(); it != v.rend(); ++it) {
+        reverse.push_back(*it);
+    }
+
+    // Should be reverse of each other
+    EXPECT_EQ(forward.size(), reverse.size());
+    for (size_t i = 0; i < forward.size(); ++i) {
+        EXPECT_EQ(forward[i], reverse[reverse.size() - 1 - i]);
+    }
+}
+
+TEST(VectorIteratorTest, BaseIteratorConversion) {
+    ptorpis::vector<int> v{1, 2, 3, 4, 5};
+
+    auto rit = v.rbegin();
+    ++rit; // Points to 4 in reverse (index 3 in forward)
+
+    // Convert reverse iterator to base (forward) iterator
+    auto it = rit.base();
+
+    // base() returns the forward iterator one past the element
+    // rbegin+1 points to v[3] (value 4)
+    // base() returns iterator to v[4] (value 5)
+    EXPECT_EQ(*it, 5);
+}
+
+// Type Traits Tests
+
+TEST(VectorReverseIteratorTest, ReverseIteratorTypeTraits) {
+    using reverse_iter = ptorpis::vector<int>::reverse_iterator;
+    using const_reverse_iter = ptorpis::vector<int>::const_reverse_iterator;
+
+    static_assert(
+        std::is_same_v<typename std::iterator_traits<reverse_iter>::iterator_category,
+                       std::random_access_iterator_tag>);
+
+    static_assert(std::is_same_v<
+                  typename std::iterator_traits<const_reverse_iter>::iterator_category,
+                  std::random_access_iterator_tag>);
 }
