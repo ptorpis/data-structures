@@ -33,6 +33,9 @@ private:
     static constexpr std::size_t GROWTH_FACTOR = 2;
 
 public:
+    using iterator = detail::vector_iterator<T>;
+    using const_iterator = detail::vector_const_iterator<T>;
+
     static std::size_t max_size() { return std::numeric_limits<T>::max(); }
 
     /*
@@ -512,9 +515,9 @@ public:
         return !(std::equal(data_m, data_m + size_m, other.data_m));
     }
 
-    vector_iterator<T> begin() { return vector_iterator(data_m); }
+    iterator begin() { return iterator(data_m); }
 
-    vector_iterator<T> end() { return vector_iterator(data_m + size_m); }
+    iterator end() { return iterator(data_m + size_m); }
 
 private:
     /*

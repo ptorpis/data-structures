@@ -1,6 +1,7 @@
 #include "vector.hpp"
 #include <ios>
 #include <iostream>
+#include <numeric>
 #include <print>
 #include <vector>
 
@@ -33,11 +34,8 @@ int main() {
 
     ptorpis::vector<int> v{1, 2, 3, 4, 5};
 
-    for (auto elem : v) {
-        std::cout << elem << " ";
-    }
-
-    std::cout << std::endl;
+    int res = std::accumulate(v.begin(), v.end(), 0);
+    std::println("The sum is {}", res);
 
     return 0;
 }
