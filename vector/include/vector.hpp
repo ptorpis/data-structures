@@ -39,7 +39,11 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    static std::size_t max_size() { return std::numeric_limits<T>::max(); }
+    using reference = T&;
+    using pointer = T*;
+    using size_type = std::size_t;
+
+    static size_type max_size() { return std::numeric_limits<T>::max(); }
 
     /*
      * Constructors
@@ -57,12 +61,12 @@ public:
     /*
      * @brief count constructor: constructs vector object, allocated memory and default
      * constructs all elements.
-     * @param std::size_t count: number of elements to allocate memory for and default
+     * @param size_type count: number of elements to allocate memory for and default
      * construct
      * @param const Allocator&: allocator (from template)
      */
 
-    vector(std::size_t count, const Allocator& allocator = Allocator())
+    vector(size_type count, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
         if (count == 0) {
             return;
@@ -72,12 +76,12 @@ public:
         capacity_m = count;
 
         try {
-            for (std::size_t i{}; i < count; ++i) {
+            for (size_type i{}; i < count; ++i) {
                 alloc_traits::construct(alloc_m, data_m + i);
                 ++size_m;
             }
         } catch (...) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 
@@ -90,24 +94,24 @@ public:
     /*
      * @brief Count + Value Constructor: Constructs the vector object, allocates memory
      * and constructs all elements with the value given
-     * @param std::size_t count
+     * @param size_type count
      * @param const T& value: the value with which the elements should be constructed with
      * @param const Allocator& allocator
      */
-    vector(std::size_t count, const T& value, const Allocator& allocator = Allocator())
+    vector(size_type count, const T& value, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
 
         data_m = alloc_traits::allocate(alloc_m, count);
         capacity_m = count;
 
         try {
-            for (std::size_t i{}; i < count; ++i) {
+            for (size_type i{}; i < count; ++i) {
                 alloc_traits::construct(alloc_m, data_m + i, value);
                 ++size_m;
             }
 
         } catch (...) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 
@@ -137,7 +141,7 @@ public:
 
     vector(std::initializer_list<T> init, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
-        std::size_t count = init.size();
+        size_type count = init.size();
         if (count == 0) {
             return;
         }
@@ -147,13 +151,13 @@ public:
 
         try {
             auto it = init.begin();
-            for (std::size_t i{}; i < count; ++i, ++it) {
+            for (size_type i{}; i < count; ++i, ++it) {
                 alloc_traits::construct(alloc_m, data_m + i, *it);
                 ++size_m;
             }
 
         } catch (...) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 
@@ -195,13 +199,13 @@ public:
         capacity_m = other.size();
 
         try {
-            for (std::size_t i{}; i < other.size_m; ++i) {
+            for (size_type i{}; i < other.size_m; ++i) {
                 alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
                 ++size_m;
             }
 
         } catch (...) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 
@@ -276,12 +280,12 @@ public:
         capacity_m = other.size_m;
 
         try {
-            for (std::size_t i{}; i < other.size_m; ++i) {
+            for (size_type i{}; i < other.size_m; ++i) {
                 alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
                 ++size_m;
             }
         } catch (...) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 
@@ -348,7 +352,7 @@ public:
      *       should not throw exceptions)
      */
     ~vector() {
-        for (std::size_t i{}; i < size_m; ++i) {
+        for (size_type i{}; i < size_m; ++i) {
             alloc_traits::destroy(alloc_m, data_m + i);
         }
         if (data_m) {
@@ -356,14 +360,14 @@ public:
         }
     }
 
-    void reserve(std::size_t new_capacity) {
+    void reserve(size_type new_capacity) {
         if (capacity_m >= new_capacity) {
             return;
         }
 
-        T* new_data = alloc_traits::allocate(alloc_m, new_capacity);
+        pointer new_data = alloc_traits::allocate(alloc_m, new_capacity);
 
-        std::size_t moved{};
+        size_type moved{};
         try {
             for (; moved < size_m; ++moved) {
                 alloc_traits::construct(alloc_m, new_data + moved,
@@ -371,7 +375,7 @@ public:
             }
 
         } catch (...) {
-            for (std::size_t i{}; i < moved; ++i) {
+            for (size_type i{}; i < moved; ++i) {
                 alloc_traits::destroy(alloc_m, new_data + i);
             }
 
@@ -382,7 +386,7 @@ public:
             throw;
         }
 
-        for (std::size_t i{}; i < size_m; ++i) {
+        for (size_type i{}; i < size_m; ++i) {
             alloc_traits::destroy(alloc_m, data_m + i);
         }
 
@@ -412,7 +416,7 @@ public:
      *
      * @see operator[] for unchecked access
      */
-    T& at(std::size_t pos) {
+    T& at(size_type pos) {
         if (pos >= size_m) {
             throw std::out_of_range("Element accessed is out of bounds");
         }
@@ -421,30 +425,30 @@ public:
     }
 
     /// @overload
-    const T& at(std::size_t pos) const {
+    const T& at(size_type pos) const {
         if (pos >= size_m) {
             throw std::out_of_range("Element accessed is out of bounds");
         }
         return data_m[pos];
     }
 
-    T& operator[](std::size_t pos) { return data_m[pos]; }
-    const T& operator[](std::size_t pos) const { return data_m[pos]; }
+    reference operator[](size_type pos) { return data_m[pos]; }
+    reference operator[](size_type pos) const { return data_m[pos]; }
 
-    const T& back() const { return data_m[size_m - 1]; }
+    reference back() const { return data_m[size_m - 1]; }
 
-    T& back() { return data_m[size_m - 1]; }
+    reference back() { return data_m[size_m - 1]; }
 
-    T& front() { return *data_m; }
-    const T& front() const { return *data_m; }
+    reference front() { return *data_m; }
+    reference front() const { return *data_m; }
 
-    T* data() { return data_m; }
+    pointer data() { return data_m; }
 
-    const T* data() const { return data_m; }
+    pointer data() const { return data_m; }
 
-    std::size_t size() const { return size_m; }
+    size_type size() const { return size_m; }
 
-    std::size_t capacity() const { return capacity_m; }
+    size_type capacity() const { return capacity_m; }
 
     void push_back(const T& value) {
         if (size_m == capacity_m) {
@@ -465,7 +469,28 @@ public:
         ++size_m;
     }
 
-    void emplace_back();
+    /* less general, not ideal version
+    template <typename... Args> reference emplace_back(Args&&... args) {
+        if (size_m == capacity_m) {
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        std::construct_at(data_m + size_m, std::forward<Args>(args)...);
+
+        ++size_m;
+        return data_m[size_m - 1];
+    }
+    */
+
+    template <typename... Args> reference emplace_back(Args&&... args) {
+        if (size_m == capacity_m) {
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        alloc_traits::construct(alloc_m, data_m + size_m, std::forward<Args>(args)...);
+        ++size_m;
+        return data_m[size_m - 1];
+    }
 
     /**
      * @brief Removes the last element
@@ -487,16 +512,23 @@ public:
     }
 
     void clear() {
-        for (std::size_t i{}; i < size_m; ++i) {
+        for (size_type i{}; i < size_m; ++i) {
             alloc_traits::destroy(alloc_m, data_m + i);
         }
 
         size_m = 0;
     }
 
-    void insert(std::size_t index, const T& value);
+    iterator erase(const_iterator pos);
+    iterator erase(const_iterator first, const_iterator last);
 
-    void erase(std::size_t index);
+    iterator insert(const_iterator pos, const T& value);
+    iterator insert(const_iterator pos, T&& value);
+    iterator insert(const_iterator pos, size_type count, const T& value);
+
+    template <typename InputIt>
+    iterator insert(const_iterator pos, InputIt first, InputIt last);
+    iterator insert(const_iterator pos, std::initializer_list<T> iList);
 
     bool empty() const { return size_m == 0; }
 
@@ -543,13 +575,13 @@ private:
      * 7 padding)
      */
     [[no_unique_address]] Allocator alloc_m;
-    T* data_m;
-    std::size_t capacity_m;
-    std::size_t size_m;
+    pointer data_m;
+    size_type capacity_m;
+    size_type size_m;
 
     void clear_and_deallocate_() {
         if (data_m) {
-            for (std::size_t i{}; i < size_m; ++i) {
+            for (size_type i{}; i < size_m; ++i) {
                 alloc_traits::destroy(alloc_m, data_m + i);
             }
 

@@ -97,3 +97,41 @@ TEST(VectorTest, AccessAfterClear) {
 
     EXPECT_THROW(v.at(0), std::out_of_range);
 }
+
+TEST(VectorTest, EmplaceBackBasic) {
+    ptorpis::vector<std::string> v;
+
+    v.emplace_back("hello");
+
+    EXPECT_EQ(v.size(), 1);
+    EXPECT_EQ(v[0], "hello");
+}
+
+TEST(VectorTest, EmplaceBackMultipleArgs) {
+    ptorpis::vector<std::string> v;
+
+    v.emplace_back(5, 'x'); // Construct string(5, 'x')
+
+    EXPECT_EQ(v[0], "xxxxx");
+}
+
+TEST(VectorTest, EmplaceBackReturnsReference) {
+    ptorpis::vector<int> v;
+
+    int& ref = v.emplace_back(42);
+
+    EXPECT_EQ(ref, 42);
+    ref = 99;
+    EXPECT_EQ(v[0], 99); // Modified through reference
+}
+
+TEST(VectorTest, EmplaceBackWithGrowth) {
+    ptorpis::vector<std::string> v;
+
+    for (int i = 0; i < 100; ++i) {
+        v.emplace_back(std::to_string(i));
+    }
+
+    EXPECT_EQ(v.size(), 100);
+    EXPECT_EQ(v[50], "50");
+}
