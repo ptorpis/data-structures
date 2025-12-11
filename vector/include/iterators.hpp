@@ -45,9 +45,21 @@ public:
         return *this;
     }
 
-    vector_iterator operator+(std::ptrdiff_t n) const;
-    vector_iterator operator-(std::ptrdiff_t n) const;
-    std::ptrdiff_t operator-(const vector_iterator& other) const;
+    vector_iterator operator+(std::ptrdiff_t n) const {
+        vector_iterator temp = *this;
+        temp += n;
+        return temp;
+    }
+
+    vector_iterator operator-(std::ptrdiff_t n) const {
+        vector_iterator temp = *this;
+        temp -= n;
+        return temp;
+    }
+
+    std::ptrdiff_t operator-(const vector_iterator& other) const {
+        return (ptr_ - other.ptr_);
+    }
 
     T& operator[](std::ptrdiff_t n) const { return ptr_[n]; }
 
@@ -100,6 +112,18 @@ public:
     const vector_const_iterator& operator-=(std::ptrdiff_t n) {
         ptr_ -= n;
         return *this;
+    }
+
+    const vector_const_iterator operator+(std::ptrdiff_t n) const {
+        vector_const_iterator temp = *this;
+        temp += n;
+        return temp;
+    }
+
+    const vector_const_iterator operator-(std::ptrdiff_t n) const {
+        vector_const_iterator temp = *this;
+        temp -= n;
+        return temp;
     }
 
 private:
