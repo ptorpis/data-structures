@@ -36,6 +36,9 @@ public:
     using iterator = detail::vector_iterator<T>;
     using const_iterator = detail::vector_const_iterator<T>;
 
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     static std::size_t max_size() { return std::numeric_limits<T>::max(); }
 
     /*
@@ -515,9 +518,17 @@ public:
         return !(std::equal(data_m, data_m + size_m, other.data_m));
     }
 
-    iterator begin() { return iterator(data_m); }
+    iterator begin() const { return iterator(data_m); }
+    iterator end() const { return iterator(data_m + size_m); }
 
-    iterator end() { return iterator(data_m + size_m); }
+    const_iterator cbegin() const { return const_iterator(data_m); }
+    const_iterator cend() const { return const_iterator(data_m + size_m); }
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+
+    const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
+    const_reverse_iterator crend() const { return const_reverse_iterator(begin()); }
 
 private:
     /*
