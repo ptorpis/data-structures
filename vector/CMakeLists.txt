@@ -39,6 +39,7 @@ if(BUILD_TESTS)
         tests/reserve_push_back.cpp
         tests/general.cpp
         tests/iterators.cpp
+        tests/exception_safety.cpp
     )
     
     target_link_libraries(tests_vector 
@@ -52,7 +53,7 @@ if(BUILD_TESTS)
         -fsanitize=address,undefined
         -fno-omit-frame-pointer
         -g
-        -O1
+        -O0
     )
     
     target_link_options(tests_vector PRIVATE

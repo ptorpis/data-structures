@@ -365,35 +365,7 @@ public:
             return;
         }
 
-        pointer new_data = alloc_traits::allocate(alloc_m, new_capacity);
-
-        size_type moved{};
-        try {
-            for (; moved < size_m; ++moved) {
-                alloc_traits::construct(alloc_m, new_data + moved,
-                                        std::move_if_noexcept(data_m[moved]));
-            }
-
-        } catch (...) {
-            for (size_type i{}; i < moved; ++i) {
-                alloc_traits::destroy(alloc_m, new_data + i);
-            }
-
-            if (data_m) {
-                alloc_traits::deallocate(alloc_m, new_data, new_capacity);
-            }
-
-            throw;
-        }
-
-        for (size_type i{}; i < size_m; ++i) {
-            alloc_traits::destroy(alloc_m, data_m + i);
-        }
-
-        alloc_traits::deallocate(alloc_m, data_m, capacity_m);
-
-        data_m = new_data;
-        capacity_m = new_capacity;
+        reallocate_(new_capacity);
     }
 
     /*
@@ -519,12 +491,105 @@ public:
         size_m = 0;
     }
 
-    iterator erase(const_iterator pos);
-    iterator erase(const_iterator first, const_iterator last);
+    iterator erase(const_iterator pos) {
+        size_type index = pos - begin();
 
-    iterator insert(const_iterator pos, const T& value);
-    iterator insert(const_iterator pos, T&& value);
-    iterator insert(const_iterator pos, size_type count, const T& value);
+        alloc_traits::destroy(alloc_m, data_m + index);
+
+        for (size_type i{index}; i < size_m - 1; ++i) {
+            data_m[i] = std::move(data_m[i + 1]);
+        }
+        --size_m;
+        return iterator(data_m + index);
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        size_type first_idx = first - begin();
+        size_type last_idx = last - begin();
+        size_type count = last_idx - first_idx;
+
+        for (size_type i{first_idx}; i < last_idx; ++i) {
+            alloc_traits::destroy(alloc_m, data_m + i);
+        }
+
+        std::move(data_m + last_idx, data_m + size_m, data_m + first_idx);
+
+        size_m -= count;
+
+        return iterator(data_m + first_idx);
+    }
+
+    iterator insert(const_iterator pos, const T& value) {
+        size_type index = pos - begin();
+        if (size_m == capacity_m) {
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        std::move_backward(data_m + index, data_m + size_m, data_m + size_m + 1);
+
+        try {
+            alloc_traits::construct(alloc_m, data_m + index, value);
+        } catch (...) {
+            std::move(data_m + index, data_m + size_m + 1, data_m + index);
+            throw;
+        }
+
+        ++size_m;
+        return iterator(data_m + index);
+    }
+
+    iterator insert(const_iterator pos, T&& value) {
+        size_type index = pos - begin();
+        if (size_m == capacity_m) {
+            reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
+        }
+
+        std::move_backward(data_m + index, data_m + size_m, data_m + size_m + 1);
+
+        try {
+            alloc_traits::construct(alloc_m, data_m + index, std::move(value));
+        } catch (...) {
+            std::move(data_m + index, data_m + size_m + 1, data_m + index);
+            throw;
+        }
+
+        ++size_m;
+
+        return iterator(data_m + index);
+    }
+
+    iterator insert(const_iterator pos, size_type count, const T& value) {
+        size_type index = pos - begin();
+
+        if (count == 0) {
+            return iterator(data_m + index);
+        }
+
+        if (size_m + count > capacity_m) {
+            size_type new_capacity = std::max(size_m + count, capacity_m * GROWTH_FACTOR);
+            reserve(new_capacity);
+        }
+
+        std::move_backward(data_m + index, data_m + size_m, data_m + size_m + count);
+
+        size_type inserted{};
+        try {
+            for (; inserted < count; ++inserted) {
+                alloc_traits::construct(alloc_m, data_m + index + inserted, value);
+            }
+
+        } catch (...) {
+            for (size_type i{}; i < inserted; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + index + i);
+            }
+
+            std::move(data_m + index + count, data_m + size_m + count, data_m + index);
+            throw;
+        }
+
+        size_m += count;
+        return iterator(data_m + index);
+    }
 
     template <typename InputIt>
     iterator insert(const_iterator pos, InputIt first, InputIt last);
@@ -533,6 +598,24 @@ public:
     bool empty() const { return size_m == 0; }
 
     vector& swap(vector& other) noexcept;
+
+    void shrink_to_fit() {
+        if (size_m == capacity_m) {
+            return;
+        }
+
+        if (size_m == 0) {
+            if (data_m) {
+                alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+                data_m = nullptr;
+                capacity_m = 0;
+            }
+
+            return;
+        }
+
+        reallocate_(size_m);
+    }
 
     bool operator==(const vector& other) const {
         if (other.size_m != size_m) {
@@ -590,6 +673,36 @@ private:
             capacity_m = 0;
             size_m = 0;
         }
+    }
+
+    void reallocate_(size_type new_capacity) {
+        pointer new_data = alloc_traits::allocate(alloc_m, new_capacity);
+        size_type moved{};
+
+        try {
+            for (; moved < size_m; ++moved) {
+                alloc_traits::construct(alloc_m, new_data + moved,
+                                        std::move_if_noexcept(data_m[moved]));
+            }
+        } catch (...) {
+            for (size_type i{}; i < moved; ++i) {
+                alloc_traits::destroy(alloc_m, new_data + i);
+            }
+
+            alloc_traits::deallocate(alloc_m, new_data, new_capacity);
+            throw;
+        }
+
+        for (size_type i{}; i < size_m; ++i) {
+            alloc_traits::destroy(alloc_m, data_m + i);
+        }
+
+        if (data_m) {
+            alloc_traits::deallocate(alloc_m, data_m, capacity_m);
+        }
+
+        data_m = new_data;
+        capacity_m = new_capacity;
     }
 };
 

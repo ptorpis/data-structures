@@ -171,6 +171,16 @@ operator<=>(const vector_const_iterator<T>& lhs, const vector_iterator<T>& rhs) 
     return &(*lhs) <=> &(*rhs);
 }
 
+template <typename T> std::ptrdiff_t operator-(const vector_const_iterator<T>& lhs,
+                                               const vector_iterator<T>& rhs) {
+    return &(*lhs) - &(*rhs);
+}
+
+template <typename T> std::ptrdiff_t operator-(const vector_iterator<T>& lhs,
+                                               const vector_const_iterator<T>& rhs) {
+    return &(*lhs) - &(*rhs);
+}
+
 } // namespace detail
 
 } // namespace ptorpis
