@@ -1,5 +1,6 @@
 #include "vector.hpp"
 #include <gtest/gtest.h>
+#include <print>
 #include <stdexcept>
 
 TEST(VectorTest, PopBackBasic) {
@@ -516,4 +517,13 @@ TEST(VectorTest, ShrinkToFitPreservesElements) {
     for (int i = 0; i < 10; ++i) {
         EXPECT_EQ(v[i], i);
     }
+}
+
+TEST(VectorTest, MaxSize) {
+    ptorpis::vector<int> v{};
+
+    std::size_t maxSize = v.max_size();
+
+    EXPECT_GT(maxSize, 100'000'000);
+    EXPECT_THROW(v.reserve(maxSize + 1), std::length_error);
 }

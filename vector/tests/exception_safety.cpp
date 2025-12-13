@@ -1,5 +1,6 @@
 #include "vector.hpp"
 #include <gtest/gtest.h>
+#include <stdexcept>
 #include <vector>
 
 // ThrowAfterN that can throw an exception after N constructions

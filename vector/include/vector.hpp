@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <initializer_list>
-#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -43,7 +42,9 @@ public:
     using pointer = T*;
     using size_type = std::size_t;
 
-    static size_type max_size() { return std::numeric_limits<T>::max(); }
+    constexpr size_type max_size() const noexcept {
+        return alloc_traits::max_size(alloc_m);
+    }
 
     /*
      * Constructors
@@ -363,6 +364,10 @@ public:
     void reserve(size_type new_capacity) {
         if (capacity_m >= new_capacity) {
             return;
+        }
+
+        if (new_capacity > max_size()) {
+            throw std::length_error("Requested capacity exceeded max size.");
         }
 
         reallocate_(new_capacity);
