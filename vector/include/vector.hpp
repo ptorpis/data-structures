@@ -153,7 +153,6 @@ public:
         try {
             auto it = init.begin();
             for (size_type i{}; i < count; ++i, ++it) {
-                alloc_traits::construct(alloc_m, data_m + i, *it);
                 new (data_m + i) T(*it);
                 ++size_m;
             }
@@ -283,12 +282,12 @@ public:
 
         try {
             for (size_type i{}; i < other.size_m; ++i) {
-                alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
+                new (data_m + i) T(other.data_m[i]);
                 ++size_m;
             }
         } catch (...) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -438,7 +437,7 @@ public:
             reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
         }
 
-        alloc_traits::construct(alloc_m, data_m + size_m, value);
+        new (data_m + size_m) T(value);
         ++size_m;
     }
 
@@ -447,7 +446,7 @@ public:
             reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
         }
 
-        alloc_traits::construct(alloc_m, data_m + size_m, std::move(value));
+        new (data_m + size_m) T(std::move(value));
         ++size_m;
     }
 
@@ -472,7 +471,7 @@ public:
             reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
         }
 
-        alloc_traits::construct(alloc_m, data_m + size_m, std::forward<Args>(args)...);
+        new (data_m + size_m) T(std::forward<Args>(args)...);
         ++size_m;
         return data_m[size_m - 1];
     }
@@ -550,7 +549,7 @@ public:
         std::move_backward(data_m + index, data_m + size_m, data_m + size_m + 1);
 
         try {
-            alloc_traits::construct(alloc_m, data_m + index, value);
+            new (data_m + index) T(value);
         } catch (...) {
             std::move(data_m + index, data_m + size_m + 1, data_m + index);
             throw;
@@ -569,7 +568,7 @@ public:
         std::move_backward(data_m + index, data_m + size_m, data_m + size_m + 1);
 
         try {
-            alloc_traits::construct(alloc_m, data_m + index, std::move(value));
+            new (data_m + index) T(std::move(value));
         } catch (...) {
             std::move(data_m + index, data_m + size_m + 1, data_m + index);
             throw;
@@ -597,12 +596,12 @@ public:
         size_type inserted{};
         try {
             for (; inserted < count; ++inserted) {
-                alloc_traits::construct(alloc_m, data_m + index + inserted, value);
+                new (data_m + index + inserted) T(value);
             }
 
         } catch (...) {
             for (size_type i{}; i < inserted; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + index + i);
+                data_m[index + i].~T();
             }
 
             std::move(data_m + index + count, data_m + size_m + count, data_m + index);
@@ -632,11 +631,11 @@ public:
 
         try {
             for (auto it = first; it != last; ++inserted, ++it) {
-                alloc_traits::construct(alloc_m, data_m + index + inserted, *it);
+                new (data_m + index + inserted) T(*it);
             }
         } catch (...) {
             for (size_type i{}; i < inserted; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + index + i);
+                data_m[index + i].~T();
             }
 
             std::move(data_m + index + count, data_m + size_m + count, data_m + index);
@@ -665,7 +664,7 @@ public:
 
         try {
             for (auto it = iList.begin(); inserted < count; ++inserted, ++it) {
-                alloc_traits::construct(alloc_m, data_m + index + inserted, *it);
+                new (data_m + index + inserted) T(*it);
             }
         } catch (...) {
             for (size_type i{}; i < inserted; ++i) {
@@ -778,12 +777,11 @@ private:
 
         try {
             for (; moved < size_m; ++moved) {
-                alloc_traits::construct(alloc_m, new_data + moved,
-                                        std::move_if_noexcept(data_m[moved]));
+                new (new_data + moved) T(std::move_if_noexcept(data_m[moved]));
             }
         } catch (...) {
             for (size_type i{}; i < moved; ++i) {
-                alloc_traits::destroy(alloc_m, new_data + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, new_data, new_capacity);

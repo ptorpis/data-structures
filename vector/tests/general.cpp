@@ -527,3 +527,11 @@ TEST(VectorTest, MaxSize) {
     EXPECT_GT(maxSize, 100'000'000);
     EXPECT_THROW(v.reserve(maxSize + 1), std::length_error);
 }
+
+TEST(VectorTest, SizeParityAtLargerCounts) {
+    ptorpis::vector<int> v(1000, 42);
+    std::vector<int> sv(1000, 42);
+
+    EXPECT_EQ(v.size(), sv.size());
+    EXPECT_EQ(sizeof(v), sizeof(sv));
+}
