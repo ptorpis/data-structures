@@ -66,7 +66,6 @@ public:
      * construct
      * @param const Allocator&: allocator (from template)
      */
-
     vector(size_type count, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
         if (count == 0) {
@@ -139,7 +138,6 @@ public:
      * @par Exception Safety
      * Strong guarantee - if an exception is thrown, no resources are leaked
      */
-
     vector(std::initializer_list<T> init, const Allocator& allocator = Allocator())
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {
         size_type count = init.size();
@@ -354,7 +352,7 @@ public:
      */
     ~vector() {
         for (size_type i{}; i < size_m; ++i) {
-            alloc_traits::destroy(alloc_m, data_m + i);
+            data_m[i].~T();
         }
         if (data_m) {
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -491,8 +489,8 @@ public:
      * The end() iterator is also invalidated.
      */
     void pop_back() {
+        data_m[size_m - 1].~T();
         --size_m;
-        alloc_traits::destroy(alloc_m, data_m + size_m - 1);
     }
 
     /*
@@ -500,7 +498,7 @@ public:
      */
     void clear() {
         for (size_type i{}; i < size_m; ++i) {
-            alloc_traits::destroy(alloc_m, data_m + i);
+            data_m[i].~T();
         }
 
         size_m = 0;
@@ -512,7 +510,7 @@ public:
     iterator erase(const_iterator pos) {
         size_type index = pos - begin();
 
-        alloc_traits::destroy(alloc_m, data_m + index);
+        data[index].~T();
 
         for (size_type i{index}; i < size_m - 1; ++i) {
             data_m[i] = std::move(data_m[i + 1]);
@@ -527,7 +525,7 @@ public:
         size_type count = last_idx - first_idx;
 
         for (size_type i{first_idx}; i < last_idx; ++i) {
-            alloc_traits::destroy(alloc_m, data_m + i);
+            data_m[i].~T();
         }
 
         std::move(data_m + last_idx, data_m + size_m, data_m + first_idx);
@@ -668,7 +666,7 @@ public:
             }
         } catch (...) {
             for (size_type i{}; i < inserted; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + index + i);
+                data_m[index + i].~T();
             }
 
             std::move(data_m + index + count, data_m + size_m + count, data_m + index);
@@ -758,7 +756,7 @@ private:
     void clear_and_deallocate_() {
         if (data_m) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -789,7 +787,7 @@ private:
         }
 
         for (size_type i{}; i < size_m; ++i) {
-            alloc_traits::destroy(alloc_m, data_m + i);
+            data_m[i].~T();
         }
 
         if (data_m) {
