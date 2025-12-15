@@ -1,5 +1,5 @@
 /**
- * @file data-structures/include/vector.hpp
+ * @file data-structures/vector/include/vector.hpp
  * @brief Custom implementation of a dynamic array, similar to std::vector<T>
  * @author ptorpis -- Peter Torpis
  *
@@ -78,12 +78,12 @@ public:
 
         try {
             for (size_type i{}; i < count; ++i) {
-                alloc_traits::construct(alloc_m, data_m + i);
+                new (data_m + i) T();
                 ++size_m;
             }
         } catch (...) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -107,13 +107,13 @@ public:
 
         try {
             for (size_type i{}; i < count; ++i) {
-                alloc_traits::construct(alloc_m, data_m + i, value);
+                new (data_m + i) T(value);
                 ++size_m;
             }
 
         } catch (...) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -154,12 +154,13 @@ public:
             auto it = init.begin();
             for (size_type i{}; i < count; ++i, ++it) {
                 alloc_traits::construct(alloc_m, data_m + i, *it);
+                new (data_m + i) T(*it);
                 ++size_m;
             }
 
         } catch (...) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
@@ -201,13 +202,13 @@ public:
 
         try {
             for (size_type i{}; i < other.size_m; ++i) {
-                alloc_traits::construct(alloc_m, data_m + i, other.data_m[i]);
+                new (data_m + i) T(other.data_m[i]);
                 ++size_m;
             }
 
         } catch (...) {
             for (size_type i{}; i < size_m; ++i) {
-                alloc_traits::destroy(alloc_m, data_m + i);
+                data_m[i].~T();
             }
 
             alloc_traits::deallocate(alloc_m, data_m, capacity_m);
