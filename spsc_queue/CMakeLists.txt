@@ -33,6 +33,7 @@ if(BUILD_TESTS)
     
     add_executable(tests_spscq
         tests/single_threaded.cpp
+        tests/multi_threaded.cpp
     )
     
     target_link_libraries(tests_spscq 

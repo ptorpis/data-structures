@@ -11,7 +11,6 @@
 
 #include <atomic>
 #include <bit>
-#include <cinttypes>
 #include <cstddef>
 #include <memory>
 
@@ -107,11 +106,7 @@ public:
         size_type approx_head = head_m.load(std::memory_order_relaxed);
         size_type approx_tail = tail_m.load(std::memory_order_relaxed);
 
-        if ((approx_tail + 1) - approx_head >= buffer_size_m) {
-            return true;
-        } else {
-            return false;
-        }
+        return (approx_tail + 1) - approx_head >= buffer_size_m;
     }
 
     bool empty() const noexcept {
@@ -119,11 +114,7 @@ public:
         size_type current_head = head_m.load(std::memory_order_relaxed);
         size_type current_tail = tail_m.load(std::memory_order_acquire);
 
-        if (current_head == current_tail) {
-            return true;
-        } else {
-            return false;
-        }
+        return current_head == current_tail;
     }
 
 private:
