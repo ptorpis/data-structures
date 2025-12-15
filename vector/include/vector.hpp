@@ -1,9 +1,9 @@
-/*
+/**
  * @file data-structures/include/vector.hpp
  * @brief Custom implementation of a dynamic array, similar to std::vector<T>
  * @author ptorpis -- Peter Torpis
  *
- * This project server as an exercise in the fundamentals of C++
+ * This project serves as an exercise in the fundamentals of C++
  *
  * The purpose is to create a container that works similarly to std::vector
  * while learning along the way.
@@ -21,7 +21,7 @@
 #include "iterators.hpp"
 
 namespace ptorpis {
-/*
+/**
  * @brief Dynamic array container
  * @tparam T The type of the elements
  * @tparam Allocator The allocator type used for memory management
@@ -59,7 +59,7 @@ public:
     vector(const Allocator& allocator) noexcept
         : alloc_m(allocator), data_m(nullptr), capacity_m(0), size_m(0) {}
 
-    /*
+    /**
      * @brief count constructor: constructs vector object, allocated memory and default
      * constructs all elements.
      * @param size_type count: number of elements to allocate memory for and default
@@ -92,7 +92,7 @@ public:
         }
     }
 
-    /*
+    /**
      * @brief Count + Value Constructor: Constructs the vector object, allocates memory
      * and constructs all elements with the value given
      * @param size_type count
@@ -122,7 +122,7 @@ public:
         }
     }
 
-    /*
+    /**
      * @brief Constructs a vector from an initializer list
      *
      * Creates a vector containing copies of the elements in the initializer list.
@@ -167,7 +167,7 @@ public:
         }
     }
 
-    /*
+    /**
      * @brief Copy constructor - constructs a vector as a copy of another
      *
      * Creates a new vector with a copy of the contents of other. The allocator
@@ -215,7 +215,7 @@ public:
         }
     }
 
-    /*
+    /**
      * @brief Move constructor - constructs a vector by moving from another
      *
      * Constructs the vector with the contents of other using move semantics.
@@ -377,7 +377,7 @@ public:
      * Access methods
      */
 
-    /*
+    /**
      * @brief Accesses element at specified location with bounds checking
      *
      * Returns a reference to the element at position pos. If pos is not
@@ -427,6 +427,10 @@ public:
 
     size_type capacity() const { return capacity_m; }
 
+    /*
+     *
+     */
+
     void push_back(const T& value) {
         if (size_m == capacity_m) {
             // reserve space for 1 if the vector is empty, otherwise double the capacity
@@ -459,6 +463,9 @@ public:
     }
     */
 
+    /*
+     *
+     */
     template <typename... Args> reference emplace_back(Args&&... args) {
         if (size_m == capacity_m) {
             reserve(capacity_m == 0 ? 1 : capacity_m * GROWTH_FACTOR);
@@ -488,6 +495,9 @@ public:
         alloc_traits::destroy(alloc_m, data_m + size_m - 1);
     }
 
+    /*
+     *
+     */
     void clear() {
         for (size_type i{}; i < size_m; ++i) {
             alloc_traits::destroy(alloc_m, data_m + i);
@@ -496,6 +506,9 @@ public:
         size_m = 0;
     }
 
+    /*
+     *
+     */
     iterator erase(const_iterator pos) {
         size_type index = pos - begin();
 
@@ -524,6 +537,9 @@ public:
         return iterator(data_m + first_idx);
     }
 
+    /*
+     *
+     */
     iterator insert(const_iterator pos, const T& value) {
         size_type index = pos - begin();
         if (size_m == capacity_m) {
@@ -597,13 +613,82 @@ public:
     }
 
     template <typename InputIt>
-    iterator insert(const_iterator pos, InputIt first, InputIt last);
-    iterator insert(const_iterator pos, std::initializer_list<T> iList);
+    iterator insert(const_iterator pos, InputIt first, InputIt last) {
+        size_type index = pos - begin();
+        size_type count = std::distance(first, last);
+        if (count == 0) {
+            return iterator(data_m + index);
+        }
 
+        if (size_m + count > capacity_m) {
+            size_type new_capacity = std::max(size_m + count, capacity_m * GROWTH_FACTOR);
+            reserve(new_capacity);
+        }
+
+        std::move_backward(data_m + index, data_m + size_m, data_m + size_m + count);
+
+        size_type inserted{};
+
+        try {
+            for (auto it = first; it != last; ++inserted, ++it) {
+                alloc_traits::construct(alloc_m, data_m + index + inserted, *it);
+            }
+        } catch (...) {
+            for (size_type i{}; i < inserted; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + index + i);
+            }
+
+            std::move(data_m + index + count, data_m + size_m + count, data_m + index);
+            throw;
+        }
+
+        size_m += count;
+        return iterator(data_m + index);
+    }
+
+    iterator insert(const_iterator pos, std::initializer_list<T> iList) {
+        size_type index = pos - begin();
+        size_type count = iList.size();
+
+        if (count == 0) {
+            return iterator(data_m + index);
+        }
+
+        if (size_m + count > capacity_m) {
+            size_type new_capacity = std::max(size_m + count, capacity_m * GROWTH_FACTOR);
+            reserve(new_capacity);
+        }
+        std::move_backward(data_m + index, data_m + size_m, data_m + size_m + count);
+
+        size_type inserted{};
+
+        try {
+            for (auto it = iList.begin(); inserted < count; ++inserted, ++it) {
+                alloc_traits::construct(alloc_m, data_m + index + inserted, *it);
+            }
+        } catch (...) {
+            for (size_type i{}; i < inserted; ++i) {
+                alloc_traits::destroy(alloc_m, data_m + index + i);
+            }
+
+            std::move(data_m + index + count, data_m + size_m + count, data_m + index);
+            throw;
+        }
+
+        size_m += count;
+        return iterator(data_m + index);
+    }
+
+    /*
+     *
+     */
     bool empty() const { return size_m == 0; }
 
     vector& swap(vector& other) noexcept;
 
+    /*
+     *
+     */
     void shrink_to_fit() {
         if (size_m == capacity_m) {
             return;
@@ -667,6 +752,9 @@ private:
     size_type capacity_m;
     size_type size_m;
 
+    /*
+     *
+     */
     void clear_and_deallocate_() {
         if (data_m) {
             for (size_type i{}; i < size_m; ++i) {
@@ -680,6 +768,9 @@ private:
         }
     }
 
+    /*
+     *
+     */
     void reallocate_(size_type new_capacity) {
         pointer new_data = alloc_traits::allocate(alloc_m, new_capacity);
         size_type moved{};
