@@ -10,6 +10,8 @@ My implementation uses mainly C++20 features, but the overall standard for the p
 
 Vector is one of the most commonly used containers from the C++ STL, and conceptually, it is very simple. Store elements contiguously, and dynamically expand the capacity whenever needed.
 
+Uses a pointer and 2 `std::size_t`s to keep track of where the start of the data is, where is the end of the data, and where is the end of the capacity.
+
 List of public methods supported:
 
 - Default constructor
@@ -44,3 +46,11 @@ List of public methods supported:
 - `shrink_to_fit()`
 - Comparison operators (==, !=, >, <, >=, <=)
 - Iterator methods: `begin()`, `end()`, `cbegin()`, `cend()`, `rbegin()`, `rend()`, `crbegin()`, `crend()`
+
+## `spsc_queue` -- Lock-free Single Producer Single Consumer Queue
+
+Very common pattern used in HFT/Quantitative Trading. This data structure allows for 2 concurrent threads (one being the producer and the other being the consumer) to pass items between each other without the use of locks.
+
+Similarly to the `vector` implementation, the container is templated, so different types can be used, as well as support for custom allocator.
+
+The structure uses atomic operations on the tail and head pointers when reading/writing.
