@@ -510,7 +510,7 @@ public:
     iterator erase(const_iterator pos) {
         size_type index = pos - begin();
 
-        data[index].~T();
+        data_m[index].~T();
 
         for (size_type i{index}; i < size_m - 1; ++i) {
             data_m[i] = std::move(data_m[i + 1]);

@@ -34,6 +34,7 @@ if(BUILD_TESTS)
     add_executable(tests_spscq
         tests/single_threaded.cpp
         tests/multi_threaded.cpp
+        tests/shm_spsc_queue.cpp
     )
     
     target_link_libraries(tests_spscq 
@@ -41,6 +42,7 @@ if(BUILD_TESTS)
         ptorpis-spscq
         GTest::gtest
         GTest::gtest_main
+        rt
     )
     
     target_compile_options(tests_spscq PRIVATE

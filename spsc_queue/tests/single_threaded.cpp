@@ -1,4 +1,4 @@
-#include "spsc-queue.hpp"
+#include "spsc_queue.hpp"
 #include <gtest/gtest.h>
 
 TEST(SPSCQueue, BasicPushPop) {
