@@ -1,10 +1,12 @@
 # Data Structures 
 
-This repo is a collection of some data structures that I have decided to reimplement in C++ from both the STL and other places from scratch. This should serve as a learning exercise for mainly me, just pushing the code here, so I have a backup and it's openly available for anyone interested.
+This repo is a collection of some data structures that I have decided to reimplement in C++ from both the STL and other places from scratch. This should serve as a learning exercise for mostly me, just pushing the code here, so I have a backup and it's openly available for anyone interested.
 
-The 2 current data structures available are `vector<T>` and `spsc_queue<T>` under the namespace `ptorpis`.
+The 2 current data structures available are `vector<T>` and `spsc_queue<T>` under the namespace `ptorpis`. Implementation is ongoing.
 
-My implementation uses mainly C++20 features, but the overall standard for the project is set to 23 (mainly for `std::println`).
+My implementation uses C++20 features, but the overall ustandard for the project is set to 23 (for example `std::println`).
+
+The directories for each implementation contain test suites for the containers ensuring correctness.
 
 ## `vector<T>` -- Dynamic Array
 
@@ -51,6 +53,6 @@ List of public methods supported:
 
 Very common pattern used in HFT/Quantitative Trading. This data structure allows for 2 concurrent threads (one being the producer and the other being the consumer) to pass items between each other without the use of locks.
 
-Similarly to the `vector` implementation, the container is templated, so different types can be used, as well as support for custom allocator.
+Similarly to the `vector` implementation, the container is templated, so it can be used with different types and allocators.
 
 The structure uses atomic operations on the tail and head pointers when reading/writing.
