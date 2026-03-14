@@ -10,10 +10,6 @@ template <typename T> struct Node {
     template <class... Args> Node(node* next_node, Args&&... args)
         : next(next_node), value(std::forward<Args>(args)...) {}
 
-    Node(node* next_node, const T& val) : next(next_node), value(val) {}
-
-    Node(node* next_node, T&& val) : next(next_node), value(std::move(val)) {}
-
     node* next;
     T value;
 };

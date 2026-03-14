@@ -13,7 +13,7 @@ public:
     forward_list_iterator(node* node_ptr) : ptr(node_ptr) {}
 
     forward_list_iterator operator++(int) {
-        node* temp;
+        forward_list_iterator* temp = *this;
         ptr = ptr->next;
         return *temp;
     }

@@ -11,12 +11,16 @@ template <typename T, typename Allocator = std::allocator<T>> class forward_list
     using node = ptorpis::detail::Node<T>;
 
 public:
-    using value = T;
+    using value_type = T;
     using reference = T&;
     using pointer = T*;
     using iterator = ptorpis::detail::forward_list_iterator<T>;
 
     forward_list() : head_(nullptr) {}
+
+    ~forward_list() {
+        while (head_) pop_front();
+    }
 
     bool empty() const { return head_ ? false : true; }
 
