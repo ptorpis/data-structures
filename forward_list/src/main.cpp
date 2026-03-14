@@ -32,7 +32,7 @@ int main() {
     ltlist.emplace_front(1);
     ltlist.pop_front();
 
-    std::println("std::fowrard_list impl:");
+    std::println("std::forward_list impl:");
 
     std::forward_list<Lifetime> stdltList{};
 

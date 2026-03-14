@@ -18,6 +18,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror -Wusele
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fsanitize=address,undefined")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
+add_subdirectory(../common common)
+
 # Header-only library
 add_library(ptorpis-forward_list INTERFACE)
 target_include_directories(ptorpis-forward_list INTERFACE
@@ -27,7 +29,7 @@ target_include_directories(ptorpis-forward_list INTERFACE
 execute_process(COMMAND bash -c "echo $(which g++)")
 
 # Optional: Build tests
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" On)
 
 if(BUILD_TESTS)
     enable_testing()
@@ -38,9 +40,10 @@ if(BUILD_TESTS)
         tests/test_forward_list.cpp
     )
     
-    target_link_libraries(tests_forward_list 
-        PRIVATE 
+    target_link_libraries(tests_forward_list
+        PRIVATE
         ptorpis-forward_list
+        ptorpis-common
         GTest::gtest
         GTest::gtest_main
     )
@@ -69,5 +72,5 @@ if(BUILD_EXAMPLES)
 endif()
 
 add_executable(forward_list src/main.cpp)
-target_link_libraries(forward_list PRIVATE ptorpis-forward_list)
+target_link_libraries(forward_list PRIVATE ptorpis-forward_list ptorpis-common)
 
